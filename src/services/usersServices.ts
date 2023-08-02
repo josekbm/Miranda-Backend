@@ -1,50 +1,135 @@
-import db from "../database/db.json";
-import { User } from "../types/interfaces";
-import { saveToDatabase } from "../database/utils";
+import { IUser } from "../types/interfaces";
+import { hashPassword } from "../middleware/auth";
+import { connect, disconnect } from "../database/mongoDBconnection";
+import { User } from "../models/users";
 
-export const getUsers = () => {
-  if(!db.users || db.users.length === 0){
-    throw new Error("Users not found!")
+export const getUsers = async () => {
+  try {
+    let users: IUser[] = await User.find().sort({id: 1 }).exec();
+    if (users.length > 0) {;
+      return users;
+    } else throw new Error("Couldn`t find users in the database.");
+  } catch (e) {
+    throw e;
+  } 
+};
+
+export const getSingleUser = async (userId: IUser["id"]) => {
+  try {
+    let user = await User.findOne({ id: userId }).exec();
+    if (user) {
+      return user;
+    } else
+      throw new Error(
+        `User with ID ${userId} could not be found in the database.`
+      );
+  } catch (error) {
+    throw error;
   }
-  return db.users;
 };
 
+export const updateUser = async (updatedUser: IUser, userId: IUser["id"]) => {
+  try {
+    updatedUser.id = userId;
+    updatedUser.jobDescription = jobDescriptionChooser(updatedUser.position);
 
-export const getSingleUser = (userId: User["id"]) => {
-  const user = db.users.find((user) => user.id === userId);
+    if (updatedUser.password) {
+      updatedUser.password = await hashPassword(updatedUser.password);
+    }
 
-  if (!user) {
-    throw new Error("User not found!");
-  }
-  return user;
+    let user = await User.findOneAndUpdate(
+      { id: userId },
+      {
+        $set: updatedUser,
+      },
+      { new: true }
+    ).exec();
+    console.log(user);
+    if (user) {
+      console.log(user);
+      return user;
+    } else
+      throw new Error(
+        `User with ID ${userId} could not be found in the database.`
+      );
+  } catch (e) {
+    throw e;
+  } 
 };
 
-export const updateUser = (updatedUser : User, userId: User["id"]) => {
-  const indexToUpdate = db.users.findIndex((user) => user.id === userId);
- 
- if (indexToUpdate < 0) {
-  throw new Error("User not found!");
-}
-  db.users[indexToUpdate] = updatedUser;
-  saveToDatabase(db);
-  return db.users[indexToUpdate];
+export const createUser = async (newUser: IUser) => {
+  try {
+    const lastUser = (await User.findOne().sort({ id: -1 }).exec()) as IUser;
+    const lastId = parseInt(lastUser.id.slice(2));
+
+    if (!lastUser) {
+      throw Error("Couldn't find users on the database");
+    } else {
+      let {
+        id,
+        name,
+        photo,
+        password,
+        state,
+        email,
+        phone,
+        startDate,
+        position,
+      } = newUser;
+      id = "U-" + (lastId + 1).toString().padStart(4, "0");
+      password = await hashPassword(newUser.password);
+      let jobDescription = jobDescriptionChooser(newUser.position);
+
+      const user = new User({
+        id: id,
+        name: name,
+        password: password,
+        jobDescription: jobDescription,
+        position: position,
+        email: email,
+        state: state,
+        phone: phone,
+        startDate: startDate,
+        photo: photo,
+      });
+
+      await user
+        .save()
+        .then(() => {
+          console.log("User saved!");
+        })
+        .catch((error) => {
+          throw new Error("Error saving the user " + error);
+        });
+      console.log(await user);
+      return user;
+    }
+  } catch (e) {
+    throw e;
+  } 
 };
 
-
-export const createUser = (newUser: User) => {
-  db.users.push(newUser);
-  saveToDatabase(db);
-  return newUser;
+export const deleteUser = async (userId: IUser["id"]) => {
+  try {
+    let user = await User.findOneAndDelete({ id: userId }).exec();
+    if (user) {
+      console.log(user);
+      return user;
+    } else
+      throw new Error(
+        `User with ID ${userId} could not be found in the database.`
+      );
+  } catch (error) {
+    throw error;
+  } 
 };
 
-export const deleteUser = (userId: User["id"]) => {
- const indexToDelete = db.users.findIndex((user) => user.id === userId);
- 
- if (indexToDelete === -1) {
-  throw new Error("User not found!");
-}
-const idUser = db.users[indexToDelete].id;
-  db.users.splice(indexToDelete, 1);
-  saveToDatabase(db);
-  return idUser;
+export const jobDescriptionChooser = (position: string) => {
+  if (position === "Manager") {
+    return "Responsible for the hotel's daily management.";
+  } else if (position === "Receptionist") {
+    return "Responsible for greeting guests and checking them in and out of the hotel.";
+  } else if (position === "Room Service") {
+    return "Responsible for preparing and delivering food and beverages to guest rooms.";
+  } else return "Administrator";
 };
