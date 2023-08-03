@@ -4,7 +4,7 @@ import { IRoom } from "../types/interfaces";
 const roomSchema = new Schema<IRoom>({
     id: {type: String, required: true, unique: true},
     roomType: {type: String, enum: ["Single Bed", "Double Bed", "Double Superior","Suite", "NO DATA"], required: true},
-    roomNumber: {type: String, required: true},
+    roomNumber: {type: String, required: true, unique: true},
     description: {type: String, required: true},
     price: {type: Number, required: true},
     discount: {type: Number, required: true},

@@ -1,5 +1,4 @@
 import  express from 'express';
-import cors from 'cors';
 import bodyParser from "body-parser";
 import { bookingsRouter } from "./routes/bookingsRoutes";
 import {contactsRouter} from "./routes/contactsRoutes"
@@ -12,7 +11,7 @@ import "dotenv/config"
 import mongoose from 'mongoose';
 
 const app = express();
-app.use(cors())
+
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
@@ -22,7 +21,7 @@ app.get('/', (req, res) => {
 
 app.use("/login", authRouter )
 app.get('/', (req, res) => res.send({
-    name: "HOTEL MIRANDA REST API",
+    name: "MIRANDA DASHBOARD REST API",
     endpoints: [{
         bookings: {
             methods: "GET/GET(single)/POST/PUT/DELETE",
