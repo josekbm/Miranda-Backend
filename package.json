@@ -13,10 +13,9 @@
     "test": "jest",
     "test:verbose": "jest --verbose --detectOpenHandles --forceExit",
     "test:coverage": "jest --coverage",
-    "seed": "ts-node ./src/database/seed.ts",
     "lint": "rome check --apply-unsafe .",
     "format": "rome format --write .",
-    "ejemplo":"ts-node ./src/database/seed.ts"
+    "datos":"ts-node ./src/database/seed.ts"
     
   },
   "author": "",

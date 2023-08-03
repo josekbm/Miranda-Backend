@@ -126,7 +126,7 @@ export const deleteUser = async (userId: IUser["id"]) => {
 
 export const jobDescriptionChooser = (position: string) => {
   if (position === "Manager") {
-    return "Responsible for the hotel's daily management.";
+    return "Responsible for the hotel's management.";
   } else if (position === "Receptionist") {
     return "Responsible for greeting guests and checking them in and out of the hotel.";
   } else if (position === "Room Service") {
