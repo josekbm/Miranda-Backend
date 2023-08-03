@@ -1,4 +1,4 @@
-import { InferSchemaType, Schema, model } from "mongoose";
+import { Schema, model } from "mongoose";
 import { IBooking } from "../types/interfaces";
 
 const bookingSchema = new Schema<IBooking>({

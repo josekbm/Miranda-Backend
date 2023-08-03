@@ -1,4 +1,3 @@
-
 import passport from "passport";
 import { Strategy as localStrategy } from "passport-local";
 import { Strategy as JWTstrategy } from "passport-jwt";
@@ -64,5 +63,6 @@ export async function comparePasswords(
   hashedPassword: string
 ): Promise<boolean> {
   const isMatch = await bcrypt.compare(password, hashedPassword);
+  //console.log(hashedPassword.length, password.length, isMatch, hashedPassword, password)
   return isMatch;
 }
