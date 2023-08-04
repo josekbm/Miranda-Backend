@@ -13,7 +13,6 @@
     "test": "jest",
     "test:verbose": "jest --verbose --detectOpenHandles --forceExit",
     "test:coverage": "jest --coverage",
-    "seed": "ts-node scripts/run-seed.ts",
     "lint": "rome check --apply-unsafe .",
     "format": "rome format --write ."
   },
