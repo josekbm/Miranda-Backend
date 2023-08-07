@@ -16,6 +16,7 @@ serverless.yml
 
 # misc
 .DS_Store
+.env.json
 .env
 .env.local
 .env.development.local

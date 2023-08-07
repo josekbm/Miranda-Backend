@@ -1,4 +1,5 @@
 import  express from 'express';
+import cors from "cors";
 import bodyParser from "body-parser";
 import { bookingsRouter } from "./routes/bookingsRoutes";
 import {contactsRouter} from "./routes/contactsRoutes"
@@ -12,15 +13,14 @@ import mongoose from 'mongoose';
 
 const app = express();
 
+
 app.use(bodyParser.json());
 
-app.get('/', (req, res) => {
-    res.send('API running on root path');
-});
-
+app.use(cors())
 
 app.use("/login", authRouter )
 app.get('/', (req, res) => res.send({
+    
     name: "MIRANDA DASHBOARD REST API",
     endpoints: [{
         bookings: {

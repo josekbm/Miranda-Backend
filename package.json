@@ -15,8 +15,7 @@
     "test:coverage": "jest --coverage",
     "lint": "rome check --apply-unsafe .",
     "format": "rome format --write .",
-    "seed":"ts-node ./src/database/seed.ts"
-    
+    "seed": "ts-node ./src/database/seed.ts"
   },
   "author": "",
   "license": "ISC",

@@ -3,10 +3,9 @@ import { Strategy as localStrategy } from "passport-local";
 import { Strategy as JWTstrategy } from "passport-jwt";
 import { ExtractJwt as ExtractJWT } from "passport-jwt";
 import "dotenv/config";
-import { IUser } from "../types/interfaces";
 import bcrypt from "bcryptjs";
 import { User } from "../models/users";
-import { connect, disconnect } from "../database/mongoDBconnection";
+
 
 passport.use(
   "login",
@@ -20,7 +19,7 @@ passport.use(
         const user = await User.findOne({
           email: email}).exec();
         if (user) {
-          let result = await comparePasswords(password, user.password);
+          let result = await compararPasswords(password, user.password);
           
           if (result) {
             console.log("Valid credentials!");
@@ -58,11 +57,11 @@ export async function hashPassword(password: string): Promise<string> {
   return hashedPassword;
 }
 
-export async function comparePasswords(
+export async function compararPasswords(
   password: string,
   hashedPassword: string
 ): Promise<boolean> {
   const isMatch = await bcrypt.compare(password, hashedPassword);
-  //console.log(hashedPassword.length, password.length, isMatch, hashedPassword, password)
+ 
   return isMatch;
 }
