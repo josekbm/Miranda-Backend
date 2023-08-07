@@ -25,24 +25,24 @@ app.get('/', (req, res) => res.send({
     endpoints: [{
         bookings: {
             methods: "GET/GET(single)/POST/PUT/DELETE",
-            path: "/api/bookings"
+            path: "/bookings"
         },
         rooms: {methods: "GET/GET(single)/POST/PUT/DELETE",
                 path: "api/rooms" },
         contacts: {
             methods: "GET/PUT",
-            path: "/api/contacts"},
+            path: "/contacts"},
             
         users: {
             methods: "GET/GET(single)/POST/PUT/DELETE",
-            path: "/api/users"}
+            path: "/users"}
             
     }]
 }))
-app.use("/api/bookings", passport.authenticate('jwt', { session: false }), bookingsRouter);
-app.use("/api/contacts", passport.authenticate('jwt', { session: false }), contactsRouter);
-app.use("/api/rooms", passport.authenticate('jwt', { session: false }), roomsRouter);
-app.use("/api/users", passport.authenticate('jwt', { session: false }), usersRouter);
+app.use("/bookings", passport.authenticate('jwt', { session: false }), bookingsRouter);
+app.use("/contacts", passport.authenticate('jwt', { session: false }), contactsRouter);
+app.use("/rooms", passport.authenticate('jwt', { session: false }), roomsRouter);
+app.use("/users", passport.authenticate('jwt', { session: false }), usersRouter);
 
 mongoose.connect(String(process.env.MONGO_DB));
 const db = mongoose.connection;
