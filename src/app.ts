@@ -28,7 +28,7 @@ app.get('/', (req, res) => res.send({
             path: "/bookings"
         },
         rooms: {methods: "GET/GET(single)/POST/PUT/DELETE",
-                path: "api/rooms" },
+                path: "/rooms" },
         contacts: {
             methods: "GET/PUT",
             path: "/contacts"},
