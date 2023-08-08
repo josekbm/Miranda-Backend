@@ -21,7 +21,7 @@ app.use(cors())
 app.use("/login", authRouter )
 app.get('/', (req, res) => res.send({
     
-    name: "MIRANDA DASHBOARD REST API",
+    name: "MIRANDA DASHBOARD API",
     endpoints: [{
         bookings: {
             methods: "GET/GET(single)/POST/PUT/DELETE",
