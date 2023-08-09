@@ -6,7 +6,6 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { User } from "../models/users";
 
-
 passport.use(
   "login",
   new localStrategy(
@@ -17,18 +16,18 @@ passport.use(
     async (email: string, password: string, done) => {
       try {
         const user = await User.findOne({
-          email: email}).exec();
+          email: email,
+        }).exec();
         if (user) {
           let result = await compararPasswords(password, user.password);
-          
+
           if (result) {
             console.log("Valid credentials!");
-            return done(null, { id: user.id ,email: email });
+            return done(null, { id: user.id, email: email });
           } else {
             return done(new Error("Invalid password!"), false);
           }
         } else return done(new Error("Invalid credentials!"), false);
-        
       } catch (error: any) {
         return done(error);
       }
@@ -62,6 +61,6 @@ export async function compararPasswords(
   hashedPassword: string
 ): Promise<boolean> {
   const isMatch = await bcrypt.compare(password, hashedPassword);
- 
+
   return isMatch;
 }
