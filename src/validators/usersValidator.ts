@@ -40,7 +40,7 @@ export const validateCreateUser = [
     .notEmpty()
     .withMessage("The start date cannot be empty.")
     .custom((value) => {
-      if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+      if (!moment(value, "YYY/MM/DD", true).isValid()) {
         throw new Error("The end date is not valid.");
       }
       return true;
@@ -108,7 +108,7 @@ export const validateUpdateUser = [
     .notEmpty()
     .withMessage("The start date cannot be empty.")
     .custom((value) => {
-      if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+      if (!moment(value, "YYYY/MM/DD", true).isValid()) {
         throw new Error("The end date is not valid.");
       }
       return true;
