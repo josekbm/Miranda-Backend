@@ -26,7 +26,7 @@ export const validateCreateBooking = [
         .notEmpty().withMessage("Check in can't be empty.")
         .custom((value) => {
             const checkIn = new Date(value)
-            if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+            if (!moment(value, "YYYY/MM/DD", true).isValid()) {
                 throw new Error("The start date is not valid.");
             }
             return true;
@@ -35,7 +35,7 @@ export const validateCreateBooking = [
         .exists().withMessage("Check out must exists.")
         .notEmpty().withMessage("The end date cannot be empty.")
         .custom((value) => {
-            if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+            if (!moment(value, "YYYY/MM/DD", true).isValid()) {
                 throw new Error("The end date is not valid.");
             }
             return true;
@@ -80,7 +80,7 @@ check("checkIn")
     .notEmpty().withMessage("Check in can't be empty.")
     .custom((value) => {
         const checkIn = new Date(value)
-        if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+        if (!moment(value, "YYYY/MM/DD", true).isValid()) {
             throw new Error("The start date is not valid.");
         }
         return true;
@@ -89,7 +89,7 @@ check("checkOut")
     .exists().withMessage("Check out must exists.")
     .notEmpty().withMessage("The end date cannot be empty.")
     .custom((value) => {
-        if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+        if (!moment(value, "YYYY/MM/DD", true).isValid()) {
             throw new Error("The end date is not valid.");
         }
         return true;
@@ -98,7 +98,7 @@ check("orderDate")
     .exists().withMessage("Order Date must exists.")
     .notEmpty().withMessage("The orderDate date cannot be empty.")
     .custom((value) => {
-        if (!moment(value, "MM/DD/YYYY", true).isValid()) {
+        if (!moment(value, "YYYY/MM/DD", true).isValid()) {
             throw new Error("The end date is not valid.");
         }
         return true;
