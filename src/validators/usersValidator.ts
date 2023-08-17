@@ -106,13 +106,13 @@ export const validateUpdateUser = [
     .withMessage("Phone must be a valid phone number."),
   check("startDate")
     .notEmpty()
-    .withMessage("The start date cannot be empty.")
-    .custom((value) => {
+    .withMessage("The start date cannot be empty."),
+    /*.custom((value) => {
       if (!moment(value, "YYYY/MM/DD", true).isValid()) {
         throw new Error("The end date is not valid.");
       }
       return true;
-    }),
+    }),*/
   check("jobDescription")
     .exists()
     .withMessage("Job description must exists")

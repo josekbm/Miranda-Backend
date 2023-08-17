@@ -187,6 +187,7 @@ const insertJsonRooms = async () => {
       thumbnail: element.thumbnail,
       amenities: element.amenities,
       images: element.images,
+      status: element.status
     }).save()
     .then(() => {
       console.log("Room saved!");
@@ -225,6 +226,7 @@ const insertFakerRooms = async (count: number) => {
         thumbnail: roomInfoChooser(roomType).thumbnail,
         amenities: roomInfoChooser(roomType).amenities,
         images: roomInfoChooser(roomType).images,
+        status: faker.helpers.arrayElement(['AVAILABLE', 'BOOKED'])
       }).save()
       .then(() => {
         console.log("Room saved!");
