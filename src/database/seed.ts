@@ -225,6 +225,7 @@ const insertFakerRooms = async (count: number) => {
         thumbnail: roomInfoChooser(roomType).thumbnail,
         amenities: roomInfoChooser(roomType).amenities,
         images: roomInfoChooser(roomType).images,
+        status: faker.helpers.arrayElement(['AVAILABLE', 'BOOKED'])
       }).save()
       .then(() => {
         console.log("Room saved!");
