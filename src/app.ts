@@ -13,10 +13,16 @@ import mongoose from 'mongoose';
 
 const app = express();
 
+const allowedOrigins = ['http://localhost:3000'];
 
-app.use(bodyParser.json());
+const options: cors.CorsOptions = {
+  origin: allowedOrigins
+};
 
-app.use(cors());
+
+app.use(cors(options));
+
+app.use(express.json());
 
 app.use("/login", authRouter )
 app.get('/', (req, res) => res.send({
