@@ -45,11 +45,11 @@ export const validateCreateUser = [
       }
       return true;
     })*/
-  /*check("jobDescription")
-    .exists()
+  check("jobDescription")
+    //.exists()
     .withMessage("Job description must exists")
     .isString()
-    .withMessage("Job description must be a string")*/,
+    .withMessage("Job description must be a string"),
 
   check("state")
     .exists()
