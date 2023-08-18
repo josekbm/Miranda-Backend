@@ -1,6 +1,5 @@
 import  express from 'express';
 import cors from "cors";
-import bodyParser from "body-parser";
 import { bookingsRouter } from "./routes/bookingsRoutes";
 import {contactsRouter} from "./routes/contactsRoutes"
 import { roomsRouter } from "./routes/roomsRoutes";
