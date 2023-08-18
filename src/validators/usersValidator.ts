@@ -1,4 +1,32 @@
-import { check } from "express-validator";
+import Joi from "joi";
+
+export const validateCreateUser = Joi.object({
+  id: Joi.string().max(100).optional(),
+  photo: Joi.string().uri().required(),
+  name: Joi.string().min(3).max(255).required(),
+  position: Joi.string().min(3).max(255).required(),
+  email: Joi.string().email().required(),
+  phone: Joi.string().required(),
+  startDate: Joi.date().min("2022-01-01").max("2023-12-31").required(),
+  jobDescription: Joi.string().min(3).max(255).required(),
+  state: Joi.string().valid("ACTIVE", "INACTIVE").required(),
+  password: Joi.string().alphanum().min(8).required(),
+});
+
+export const validateUpdateUser = Joi.object({
+  id: Joi.string().max(100).optional(),
+  photo: Joi.string().uri().optional(),
+  name: Joi.string().min(3).max(255).optional(),
+  position: Joi.string().min(3).max(255).optional(),
+  email: Joi.string().email().optional(),
+  phone: Joi.string().optional(),
+  startDate: Joi.date().min("2022-01-01").max("2023-12-31").optional(),
+  jobDescription: Joi.string().min(3).max(255).optional(),
+  state: Joi.string().valid("ACTIVE", "INACTIVE").optional(),
+  password: Joi.string().alphanum().min(8).optional(),
+});
+
+/*import { check } from "express-validator";
 import moment, { locale } from "moment";
 import db from "../database/db.json";
 
@@ -44,9 +72,9 @@ export const validateCreateUser = [
         throw new Error("The end date is not valid.");
       }
       return true;
-    })*/
-  check("jobDescription")
-    //.exists()
+    })
+    check("jobDescription")
+    .exists()
     .withMessage("Job description must exists")
     .isString()
     .withMessage("Job description must be a string"),
@@ -112,7 +140,7 @@ export const validateUpdateUser = [
         throw new Error("The end date is not valid.");
       }
       return true;
-    })*/
+    })
   check("jobDescription")
     .exists()
     .withMessage("Job description must exists")
@@ -147,4 +175,4 @@ export const validateUpdateUser = [
       }
       return true;
     }),
-];
+];*/

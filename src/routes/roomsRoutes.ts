@@ -6,8 +6,8 @@ import { validateCreateRoom, validateUpdateRoom } from "../validators/roomsValid
 const roomsRouter = Router();
 roomsRouter.get("/", getRoomsController );
 roomsRouter.get("/:roomId", getSingleRoomController);
-roomsRouter.post("/", validateCreateRoom, createRoomController);
-roomsRouter.put("/:roomId", validateUpdateRoom, updateRoomController);
+roomsRouter.post("/", createRoomController);
+roomsRouter.put("/:roomId", updateRoomController);
 roomsRouter.delete("/:roomId", deleteRoomController);
 
 

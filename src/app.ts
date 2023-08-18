@@ -12,14 +12,14 @@ import mongoose from 'mongoose';
 
 const app = express();
 
-const allowedOrigins = ['http://localhost:3000'];
+/*const allowedOrigins = ['http://localhost:3000'];
 
 const options: cors.CorsOptions = {
   origin: allowedOrigins
-};
+};*/
 
 
-app.use(cors(options));
+app.use(cors());
 
 app.use(express.json());
 

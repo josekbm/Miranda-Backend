@@ -6,8 +6,8 @@ import { validateCreateBooking, validateUpdateBooking } from "../validators/book
 const bookingsRouter = Router();
 bookingsRouter.get("/", getBookingsController);
 bookingsRouter.get("/:bookingId", getSingleBookingController);
-bookingsRouter.post("/", validateCreateBooking, createBookingController);
-bookingsRouter.put("/:bookingId", validateUpdateBooking, updateBookingController);
+bookingsRouter.post("/", createBookingController);
+bookingsRouter.put("/:bookingId", updateBookingController);
 bookingsRouter.delete("/:bookingId", deleteBookingController);
 
 

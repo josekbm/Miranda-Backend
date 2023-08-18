@@ -48,20 +48,20 @@ export const createUserController = async (req: Request, res: Response) => {
 export const updateUserController = async (req: Request, res: Response) => {
   try {
     const user = req.body;
-  const userId = req.params["userId"];
+    const userId = req.params["userId"];
 
-  const result = validationResult(req);
+    const result = validationResult(req);
 
-  if (!result.isEmpty()) {
-    res.status(422).json({ errors: result.array() });
-    return;
-  }
+    if (!result.isEmpty()) {
+      res.status(422).json({ errors: result.array() });
+      return;
+    }
 
-  const updatedUser = await updateUser(user, userId);
+    const updatedUser = await updateUser(user, userId);
 
-  res.status(201).send({ status: "204", data: updatedUser });
+    res.status(201).send({ status: "204", data: updatedUser });
   } catch (e: any) {
-    res.status(400).send({ status: "400", data: { error: e.message } })
+    res.status(400).send({ status: "400", data: { error: e.message } });
   }
 };
 
