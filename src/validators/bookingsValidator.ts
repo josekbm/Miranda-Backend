@@ -24,22 +24,22 @@ export const validateCreateBooking = [
     check("checkIn")
         .exists().withMessage("Check in must exists.")
         .notEmpty().withMessage("Check in can't be empty.")
-        .custom((value) => {
+        /*.custom((value) => {
             const checkIn = new Date(value)
             if (!moment(value, "MM/DD/YYYY", true).isValid()) {
                 throw new Error("The start date is not valid.");
             }
             return true;
-        }),
+        })*/,
     check("checkOut")
         .exists().withMessage("Check out must exists.")
         .notEmpty().withMessage("The end date cannot be empty.")
-        .custom((value) => {
+        /*.custom((value) => {
             if (!moment(value, "MM/DD/YYYY", true).isValid()) {
                 throw new Error("The end date is not valid.");
             }
             return true;
-        }),
+        })*/,
     check("checkIn").custom((value, { req }) => {
         const actualDate = new Date();
         const startDate = new Date(value);
@@ -78,31 +78,31 @@ check("room")
 check("checkIn")
     .exists().withMessage("Check in must exists.")
     .notEmpty().withMessage("Check in can't be empty.")
-    .custom((value) => {
+    /*.custom((value) => {
         const checkIn = new Date(value)
         if (!moment(value, "MM/DD/YYYY", true).isValid()) {
             throw new Error("The start date is not valid.");
         }
         return true;
-    }),
+    })*/,
 check("checkOut")
     .exists().withMessage("Check out must exists.")
     .notEmpty().withMessage("The end date cannot be empty.")
-    .custom((value) => {
+    /*.custom((value) => {
         if (!moment(value, "MM/DD/YYYY", true).isValid()) {
             throw new Error("The end date is not valid.");
         }
         return true;
-    }),
+    })*/,
 check("orderDate")
     .exists().withMessage("Order Date must exists.")
     .notEmpty().withMessage("The orderDate date cannot be empty.")
-    .custom((value) => {
+    /*.custom((value) => {
         if (!moment(value, "MM/DD/YYYY", true).isValid()) {
             throw new Error("The end date is not valid.");
         }
         return true;
-    }),
+    })*/,
 check("checkIn").custom((value, { req }) => {
     const orderDate = new Date(req.body.orderDate);
     const startDate = new Date(value);
