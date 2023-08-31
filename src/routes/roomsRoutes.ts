@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {getRoomsController, getSingleRoomController, createRoomController, updateRoomController, deleteRoomController } from "../controllers/roomsController";
-import { validateCreateRoom, validateUpdateRoom } from "../validators/roomsValidator";
 
 
 const roomsRouter = Router();

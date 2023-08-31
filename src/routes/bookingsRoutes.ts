@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {getBookingsController, getSingleBookingController, updateBookingController, deleteBookingController, createBookingController } from "../controllers/bookingsController";
-import { validateCreateBooking, validateUpdateBooking } from "../validators/bookingsValidator";
 
 
 const bookingsRouter = Router();
