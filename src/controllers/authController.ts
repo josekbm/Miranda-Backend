@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { IUser } from "../types/interfaces";
+import { User } from "../types/interfaces";
 const passport = require("passport");
 import jwt from "jsonwebtoken";
 require("dotenv").config();
@@ -9,7 +9,7 @@ export const authController = async (
   res: Response,
   next: NextFunction
 ) => {
-  passport.authenticate("login", async (err: any, user: IUser, info: any) => {
+  passport.authenticate("login", async (err: any, user: User, info: any) => {
     try {
       if (err || !user) {
         const error = err ? new Error(err) : new Error("Invalid credentials");

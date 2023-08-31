@@ -3,8 +3,9 @@ import { Strategy as localStrategy } from "passport-local";
 import { Strategy as JWTstrategy } from "passport-jwt";
 import { ExtractJwt as ExtractJWT } from "passport-jwt";
 import "dotenv/config";
-import bcrypt from "bcryptjs";
-import { User } from "../models/users";
+import { queryDb } from "../database/mysqlConnector";
+import { User } from "../types/interfaces";
+import bcrypt from "bcrypt";
 
 passport.use(
   "login",
@@ -15,15 +16,14 @@ passport.use(
     },
     async (email: string, password: string, done) => {
       try {
-        const user = await User.findOne({
-          email: email,
-        }).exec();
-        if (user) {
-          let result = await compararPasswords(password, user.password);
-
+        const user = (await queryDb("SELECT * FROM users WHERE email=?", [
+          email,
+        ])) as User[];
+        if (user.length > 0) {
+          let result = await comparePasswords(password, user[0].password);
           if (result) {
-            console.log("Valid credentials!");
-            return done(null, { id: user.id, email: email });
+            console.log("¡Contraseña válida!");
+            return done(null, { email: email });
           } else {
             return done(new Error("Invalid password!"), false);
           }
@@ -56,11 +56,10 @@ export async function hashPassword(password: string): Promise<string> {
   return hashedPassword;
 }
 
-export async function compararPasswords(
+export async function comparePasswords(
   password: string,
   hashedPassword: string
 ): Promise<boolean> {
   const isMatch = await bcrypt.compare(password, hashedPassword);
-
   return isMatch;
 }

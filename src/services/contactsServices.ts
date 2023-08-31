@@ -1,52 +1,46 @@
-import { connect, disconnect } from "../database/mongoDBconnection";
-import { Contact } from "../models/contacts";
-import { IContact } from "../types/interfaces";
+import { ResultSetHeader } from "mysql2";
+import { queryDb } from "../database/mysqlConnector";
+import { Contact } from "../types/interfaces";
 
 export const getContacts = async () => {
   try {
-    let contacts: IContact[] = await Contact.find().sort({id: 1 }).exec();
-    if (contacts.length > 0) {
-      console.log(contacts);
-      return contacts;
-    } else throw new Error("Couldn`t find contacts on the database.");
+    const query = "SELECT * from contacts";
+
+    return await queryDb(query, null);
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
-export const getSingleContact = async (contactId: IContact["id"]) => {
+export const getSingleContact = async (contactId: Contact["id"]) => {
   try {
-    let contact = await Contact.findOne({ id: contactId }).exec();
-    if (contact) {
-      console.log(contact);
+    const query = "SELECT * from contacts WHERE id= ?;";
+    const contact = (await queryDb(query, [contactId])) as Contact[];
+
+    if (contact.length === 0) {
+      throw new Error("Contact not found!");
+    } else {
       return contact;
-    } else
-      throw new Error(
-        `Contact with ID ${contactId} could not be found in the database.`
-      );
+    }
   } catch (error) {
     throw error;
   }
 };
 
 export const toggleArchiveContacts = async (
-  updatedInfo: IContact["archived"],
-  contactId: IContact["id"]
+  updatedInfo: Contact["archived"],
+  contactId: Contact["id"]
 ) => {
   try {
-    const contact = await Contact.findOneAndUpdate(
-      { id: contactId },
-      { archived: updatedInfo },
-      { new: true }
-    ).exec();
+    const query = "UPDATE contacts SET archived=? WHERE id=?";
+    const contactDb = (await queryDb(query, [
+      updatedInfo,
+      contactId,
+    ])) as ResultSetHeader;
 
-    if (contact) {
-      console.log(contact);
-      return contact;
-    } else
-      throw new Error(
-        `Contact with ID ${contactId} could not be found in the database.`
-      );
+    if (contactDb.affectedRows === 0) {
+      throw new Error("Couldn't update the contact.");
+    } else return getSingleContact(contactId);
   } catch (e) {
     throw e;
   }

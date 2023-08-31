@@ -1,39 +1,34 @@
 import { faker } from "@faker-js/faker";
-import { IBooking, IContact, IRoom, IUser } from "../types/interfaces";
-import db from "./db.json";
-import bcrypt from "bcrypt";
+import { Booking, Contact, Room, User } from "../types/interfaces";
+import db from "../database/db.json";
+import { queryDb } from "../database/mysqlConnector";
+import bcrypt, { hash } from "bcrypt";
 import { jobDescriptionChooser } from "../services/usersServices";
 import { roomInfoChooser } from "../services/roomsServices";
 import { hashPassword } from "../middleware/auth";
-import { Contact } from "../models/contacts";
-import { connect, disconnect } from "./mongoDBconnection";
-import { User } from "../models/users";
-import { Room } from "../models/rooms";
-import { Booking } from "../models/bookings";
+
+
+
 
 
 const InsertAll = async () => {
-  await connect()
   await insertJSON();
-  await Promise.all([await insertFaker()])
-  await disconnect();
+  await Promise.all([await insertFaker()]);
+} 
 
-};
+const insertJSON = async ()=> {
+    await insertJsonRooms()
+    await Promise.all([await insertJsonContacts(), await insertJsonUsers(), await insertJsonBookings()])
+}
 
 
-const insertJSON = async () => {
-  await insertJsonRooms();
-  await Promise.all([
-    await insertJsonContacts(),
-    await insertJsonUsers(),
-    await insertJsonBookings(),
-  ]);
-};
+
 
 const insertFaker =async () => {
   await insertFakerRooms(10);
   await Promise.all([await insertFakerContacts(10), await insertFakerUsers(10), await insertFakerBookings(10)])
-} 
+}
+
 
 const getRandomValue = (arr: any[]) => {
   const indiceAleatorio = Math.floor(Math.random() * arr.length);
@@ -41,235 +36,217 @@ const getRandomValue = (arr: any[]) => {
 };
 
 const insertJsonContacts = async () => {
-  try {
-
-    db.contacts.forEach(async (element) => {
-      let contact = await new Contact({
-        id: element.id,
-        date: element.date,
-        customer: element.customer,
-        archived: element.archived,
-        subject: element.subject,
-        comment: element.comment,
-      })
-        .save()
-        .then(() => {
-          console.log("Contact saved!");
-        })
-        .catch((error) => {
-          console.error("Error saving the contact: ", error);
-        });
-    });
-
-  } catch (error) {
-    console.error("Error saving the contacts: ", error);
-  }
+  const query =
+    "INSERT INTO `contacts` (id, date, customer, isArchived, subject, comment) VALUES (?, ?, ?, ?, ?, ?)";
+  db.contacts.forEach(async (element) => {
+    let contact: any = [
+      element.id,
+      element.date,
+      JSON.stringify(element.customer),
+      element.archived,
+      element.subject,
+      element.comment,
+    ];
+    await queryDb(query, contact);
+  });
 };
 
 const insertFakerContacts = async (count: number) => {
+  const query =
+    "INSERT INTO `contacts` (id, date, customer, isArchived, subject, comment) VALUES (?, ?, ?, ?, ?, ?)";
+
   for (let i = 0; i < count; i++) {
-    const lastContact = await Contact.findOne().sort({id: -1 }).exec() as IContact;
-    if (!lastContact) {
+    const lastContact = (await queryDb(
+      "SELECT id FROM contacts ORDER BY ID DESC LIMIT 1;",
+      null
+    )) as Contact[];
+
+    if (lastContact.length === 0) {
       throw Error("Couldn't find contacts on the database");
     } else {
-      let id = parseInt(lastContact.id.slice(2));
-    let contact = await new Contact({
-        id: "C-" + (id + 1).toString().padStart(4, "0"),
-        date:  new Date(faker.date.past()).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-      }),
-      customer: {
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        phone: faker.phone.number('501-###-###'),},
-      archived: getRandomValue([true, false]),
-      subject: faker.lorem.sentence(5),
-      comment: faker.lorem.paragraph(4),
-    })
-     .save()
-      .then(() => {
-        console.log("Contact saved!");
-      })
-      .catch((error) => {
-        console.error("Error saving the contact: ", error);
-      }); 
-      };      
+      const lastId = parseInt(lastContact[0].id.slice(2));
+
+      const contact = [
+        "C-" + (lastId + 1).toString().padStart(4, "0"),
+        new Date(faker.date.past()).toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+        JSON.stringify({
+          name: faker.person.fullName(),
+          email: faker.internet.email(),
+          phone: faker.phone.number(),
+        }),
+        getRandomValue([0, 1]),
+        faker.lorem.sentence(5),
+        faker.lorem.paragraph(4),
+      ];
+      await queryDb(query, contact);
     }
   }
+};
 
 const insertJsonUsers = async () => {
-
+  const query =
+    "INSERT INTO `users` (id, photo, name, email, phone, startDate, state, password, jobDescription, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   db.users.forEach(async (element) => {
     const saltRounds = 10;
     bcrypt.genSalt(saltRounds, (err, salt) => {
       bcrypt.hash(element.password, salt, (err, hash) => {
         element.password = hash;
-        let user = new User({
-          id: element.id,
-          photo: element.photo,
-          name: element.name,
-          email: element.email,
-          phone: element.phone,
-          startDate: element.startDate,
-          state: element.state,
-          password: element.password,
-          jobDescription: element.jobDescription,
-          position: element.position,
-        })
-          .save()
-          .then(() => {
-            console.log("User saved!");
-          })
-          .catch((error) => {
-            console.error("Error saving the user: ", error);
-          });
+        let user: any = [
+          element.id,
+          element.photo,
+          element.name,
+          element.email,
+          element.phone,
+          element.startDate,
+          element.state,
+          element.password,
+          element.jobDescription,
+          element.position,
+        ];
+       queryDb(query, user);
       });
     });
   });
-
 };
 
 const insertFakerUsers = async (count: number) => {
+  const query =
+    "INSERT INTO `users` (id, photo, name, email, phone, startDate, state, password, jobDescription, position) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
   for (let i = 0; i < count; i++) {
-    const lastUser = await User.findOne().sort({id: -1 }).exec() as IUser;
     let password = faker.internet.password();
-  
-    if (!lastUser) {
+    const saltRounds = 10;
+
+    const lastUser = (await queryDb(
+      "SELECT id FROM users ORDER BY ID DESC LIMIT 1",
+      null
+    )) as User[];
+
+    if (lastUser.length === 0) {
       throw Error("Couldn't find users on the database");
     } else {
-      let id = parseInt(lastUser.id.slice(2));
+      console.log(lastUser.length);
+      let lastId = parseInt(lastUser[0].id.slice(2));
       let position = getRandomValue([
         "Manager",
         "Receptionist",
         "Room Service",
       ]);
 
-      let user = await new User({
-        id: "U-" + (id + 1).toString().padStart(4, "0"),
-        photo:faker.image.avatar(),
-        name: faker.person.fullName(),
-        email: faker.internet.email(),
-        phone: faker.phone.number('501-###-###'),
-        startDate: new Date(faker.date.past()).toLocaleDateString("en-US", {
+      await queryDb(query, [
+        "U-" + (lastId + 1).toString().padStart(4, "0"),
+        faker.image.avatar(),
+        faker.person.fullName(),
+        faker.internet.email(),
+        faker.phone.number(),
+        new Date(faker.date.past()).toLocaleDateString("en-US", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
         }),
-        state: getRandomValue(["ACTIVE", "INACTIVE"]),
-        password:(await hashPassword(password)) as string,
-        jobDescription: jobDescriptionChooser(position),
-        position: position,
-      })
-      .save()
-      .then(() => {
-        console.log("User saved!");
-      })
-      .catch((error) => {
-        console.error("Error saving the user: ", error);
-      });
+        getRandomValue(["ACTIVE", "INACTIVE"]),
+        (await hashPassword(password)) as string,
+        jobDescriptionChooser(position),
+        position,
+      ]);
     }
   }
 };
-
 const insertJsonRooms = async () => {
-
+  const query =
+    "INSERT INTO `rooms` (id, roomType, roomNumber, description, price, discount, cancellation, thumbnail, amenities, images, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
   db.rooms.forEach(async (element) => {
-    let room = await new Room ({
-      id: element.id,
-      roomType: element.roomType,
-      roomNumber: element.roomNumber,
-      description: element.description,
-      price: element.price,
-      discount: element.discount,
-      cancellation: element.cancellation,
-      thumbnail: element.thumbnail,
-      amenities: element.amenities,
-      images: element.images,
-      status: element.status
-    }).save()
-    .then(() => {
-      console.log("Room saved!");
-    })
-    .catch((error) => {
-      console.error("Error saving the room: ", error);
-    });
+    let room: any = [
+      element.id,
+      element.roomType,
+      element.roomNumber,
+      element.description,
+      element.price,
+      element.discount,
+      element.cancellation,
+      element.thumbnail,
+      JSON.stringify(element.amenities),
+      JSON.stringify(element.images),
+      element.status,
+    ];
+    await queryDb(query, room);
   });
-
 };
 
 const insertFakerRooms = async (count: number) => {
- 
+  const query =
+    "INSERT INTO `rooms` (id, roomType, roomNumber, description, price, discount, cancellation, thumbnail, amenities, images, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   for (let i = 0; i < count; i++) {
-    const lastRoom = await Room.findOne().sort({id: -1 }).exec() as IRoom;
+    const lastRoom = (await queryDb(
+      "SELECT id FROM rooms ORDER BY ID DESC LIMIT 1;",
+      null
+    )) as Room[];
 
-    if (!lastRoom) {
+    if (lastRoom.length === 0) {
       throw Error("Couldn't find rooms on the database");
     } else {
-      const lastId = parseInt(lastRoom.id.slice(2));
+      const lastId = parseInt(lastRoom[0].id.slice(2));
       const roomType = getRandomValue([
         "Single Bed",
         "Double Bed",
         "Double Superior",
         "Suite",
       ]);
-      const room =await  new Room ({
-        id: "R-" + (lastId + 1).toString().padStart(4, "0"),
-        roomType: roomType,
-        roomNumber: faker.number.int({ min: 100, max: 500 }).toString(),
-        description: faker.lorem.paragraph(3),
-        price: faker.number.int({ min: 20, max: 500 }),
-        discount: faker.number.int({ min: 0, max: 50 }),
-        cancellation: roomInfoChooser(roomType).cancellation,
-        thumbnail: roomInfoChooser(roomType).thumbnail,
-        amenities: roomInfoChooser(roomType).amenities,
-        images: roomInfoChooser(roomType).images,
-        status: faker.helpers.arrayElement(['AVAILABLE', 'BOOKED'])
-      }).save()
-      .then(() => {
-        console.log("Room saved!");
-      })
-      .catch((error) => {
-        console.error("Error saving the room: ", error);
-      });
+      const room = [
+        "R-" + (lastId + 1).toString().padStart(4, "0"),
+        roomType,
+        faker.number.int({ min: 100, max: 500 }).toString(),
+        faker.lorem.paragraph(3),
+        faker.number.int({ min: 20, max: 500 }),
+        faker.number.int({ min: 0, max: 50 }),
+        roomInfoChooser(roomType).cancellation,
+        roomInfoChooser(roomType).thumbnail,
+        roomInfoChooser(roomType).amenities,
+        roomInfoChooser(roomType).images,
+        getRandomValue(["AVAILABLE", "BOOKED"]),
+      ];
+      await queryDb(query, room);
     }
   }
-}; 
+};
 
 const insertJsonBookings = async () => {
-
+  const query =
+    "INSERT INTO `bookings` (id, name, orderDate, checkIn, checkOut, room, specialRequest) VALUES (?, ?, ?, ?, ?, ?, ?)";
   db.bookings.forEach(async (element) => {
-    let booking = await new Booking({
-      id: element.id,
-      name: element.name,
-      orderDate: element.orderDate,
-      checkIn: element.checkIn,
-      checkOut: element.checkOut,
-      room: element.room,
-      specialRequest: element.specialRequest,
-  }).save()
-  .then(() => {
-    console.log("Booking saved!");
-  })
-  .catch((error) => {
-    console.error("Error saving the booking: ", error);
+    let booking: any = [
+      element.id,
+      element.name,
+      element.orderDate,
+      element.checkIn,
+      element.checkOut,
+      element.room,
+      element.specialRequest,
+    ];
+    await queryDb(query, booking);
   });
-  });
-
 };
 
 const insertFakerBookings = async (count: number) => {
-  const roomsId = await Room.find({}, 'id');
-  roomsId.filter((room) => room.id !== "R-0000");
+  const roomsId = (await queryDb("SELECT id FROM rooms", null)) as Room[];
 
- for (let i = 0; i < count; i++) {
-  const lastBooking = await Booking.findOne().sort({id: -1 }).exec() as IBooking;
-    if (!lastBooking) {
+  const query =
+    "INSERT INTO `bookings` (id, name, orderDate, checkIn, checkOut, room, specialRequest) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+  for (let i = 0; i < count; i++) {
+    const lastBooking = (await queryDb(
+      "SELECT id FROM bookings ORDER BY ID DESC LIMIT 1;",
+      null
+    )) as Booking[];
+    if (lastBooking.length === 0) {
       throw Error("Couldn't find bookings on the database");
     } else {
-      const lastId = parseInt(lastBooking.id.slice(2));
+      const lastId = parseInt(lastBooking[0].id.slice(2));
       const orderDate = new Date(faker.date.past()).toLocaleDateString(
         "en-US",
         {
@@ -278,37 +255,31 @@ const insertFakerBookings = async (count: number) => {
           day: "2-digit",
         }
       );
-      const checkIn = new Date(faker.date.soon({})).toLocaleDateString("en-US", {
+      const checkIn = new Date(faker.date.soon()).toLocaleDateString("en-US", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
       });
       const checkOut = new Date(
-        faker.date.soon({days:getRandomValue([3, 4, 5, 8, 9]), refDate: checkIn})
+        faker.date.soon(getRandomValue([3, 4, 5, 8, 9]))
       ).toLocaleDateString("en-US", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
       });
 
-      const booking = await new Booking({
-        id: "B-" + (lastId + 1).toString().padStart(4, "0"),
-        name: faker.person.fullName(),
-        orderDate: orderDate,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        room: getRandomValue(roomsId).id,
-        specialRequest: faker.lorem.paragraph(3),
-      }).save()
-      .then(() => {
-        console.log("Booking saved!");
-      })
-      .catch((error) => {
-        console.error("Error saving the booking: ", error);
-      });
-       
+      const booking = [
+        "B-" + (lastId + 1).toString().padStart(4, "0"),
+        faker.person.fullName(),
+        orderDate,
+        checkIn,
+        checkOut,
+        getRandomValue(roomsId).id,
+        faker.lorem.paragraph(3),
+      ];
+      await queryDb(query, booking);
     }
   }
-}; 
+};
 
 InsertAll();

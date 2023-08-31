@@ -1,110 +1,123 @@
-import { connect, disconnect } from "../database/mongoDBconnection";
-import { Booking } from "../models/bookings";
-import { Room } from "../models/rooms";
-import { IBooking, IRoom } from "../types/interfaces";
-import { jobDescriptionChooser } from "./usersServices";
+import { Booking, Room } from "../types/interfaces";
+import { queryDb } from "../database/mysqlConnector";
+import { ResultSetHeader } from "mysql2";
 
 export const getRooms = async () => {
   try {
-    let rooms: IRoom[] = await Room.find().sort({id: 1 }).exec();
-    if (rooms.length > 0) {
-      console.log(rooms);
-      return rooms;
-    } else throw new Error("Couldn`t find rooms on the database.");
+    const query = "SELECT * from rooms";
+
+    return await queryDb(query, null);
   } catch (e) {
     throw e;
   }
 };
 
-export const getSingleRoom = async (roomId: IRoom["id"]) => {
+export const getSingleRoom = async (roomId: Room["id"]) => {
   try {
-    let room = await Room.findOne({ id: roomId }).exec();
-    if (room) {
-      console.log(room);
+    const query = "SELECT * from rooms WHERE id= ?;";
+    const room = (await queryDb(query, [roomId])) as Room[];
+
+    if (room.length === 0) {
+      throw new Error("Room not found!");
+    } else {
       return room;
-    } else
-      throw new Error(
-        `Room with ID ${roomId} could not be found in the database.`
-      );
+    }
   } catch (error) {
     throw error;
-  } 
+  }
 };
 
-export const updateRoom = async (updatedRoom: IRoom, roomId: IRoom["id"]) => {
+export const updateRoom = async (updatedRoom: Room, roomId: Room["id"]) => {
   try {
-    updatedRoom.id = roomId;
-    updatedRoom.images = roomInfoChooser(updatedRoom.roomType).images;
-    updatedRoom.thumbnail = roomInfoChooser(updatedRoom.roomType).thumbnail;
-    updatedRoom.amenities = roomInfoChooser(updatedRoom.roomType).amenities;
-    updatedRoom.cancellation = roomInfoChooser(
-      updatedRoom.roomType
-    ).cancellation;
+    const {
+      roomType,
+      roomNumber,
+      description,
+      price,
+      discount,
+      cancellation,
+      amenities,
+      thumbnail,
+      images,
+      status,
+    } = updatedRoom;
 
-    let room = await Room.findOneAndUpdate(
-      { id: roomId },
-      {
-        $set: updatedRoom,
-      },
-      { new: true }
-    ).exec();
+    const query =
+      "UPDATE rooms SET roomType=?, roomNumber=?, description=?, price=?, discount=?, cancellation=?, thumbnail=?, amenities=?, images=?, status=? WHERE id=?";
 
-    if (room) {
-      return room;
-    } else
-      throw new Error(
-        `Room with ID ${roomId} could not be found in the database.`
-      );
+    const roomDb = (await queryDb(query, [
+      roomType,
+      roomNumber,
+      description,
+      price,
+      discount,
+      roomInfoChooser(roomType).cancellation,
+      roomInfoChooser(roomType).thumbnail,
+      JSON.stringify(roomInfoChooser(roomType).amenities),
+      JSON.stringify(roomInfoChooser(roomType).images),
+      status,
+      roomId,
+    ])) as ResultSetHeader;
+
+    if (roomDb.affectedRows === 0) {
+      throw new Error("Couldn't create the Room.");
+    } else return getSingleRoom(roomId);
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
-export const createRoom = async (newRoom: IRoom) => {
+export const createRoom = async (newRoom: Room) => {
   try {
-    const lastRoom = (await Room.findOne().sort({ id: -1 }).exec()) as IRoom;
-    const lastId = parseInt(lastRoom.id.slice(2));
+    const lastRoom = (await queryDb(
+      "SELECT id FROM rooms ORDER BY ID DESC LIMIT 1;",
+      null
+    )) as Room[];
 
-    if (!lastRoom) {
+    if (lastRoom.length === 0) {
       throw Error("Couldn't find rooms on the database");
     } else {
-      newRoom.id = "R-" + (lastId + 1).toString().padStart(4, "0");
-      newRoom.images = roomInfoChooser(newRoom.roomType).images;
-      newRoom.thumbnail = roomInfoChooser(newRoom.roomType).thumbnail;
-      newRoom.amenities = roomInfoChooser(newRoom.roomType).amenities;
-      newRoom.cancellation = roomInfoChooser(newRoom.roomType).cancellation;
+      const lastId = parseInt(lastRoom[0].id.slice(2));
+      const id = "R-" + (lastId + 1).toString().padStart(4, "0");
 
-      const room = new Room(newRoom);
+      const roomDb = (await queryDb(
+        "INSERT INTO rooms (id, roomType, roomNumber, description, price, discount, cancellation, amenities, thumbnail, images, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        [
+          id,
+          newRoom.roomType,
+          newRoom.roomNumber,
+          newRoom.description,
+          newRoom.price,
+          newRoom.discount,
+          roomInfoChooser(newRoom.roomType).cancellation,
+          JSON.stringify(roomInfoChooser(newRoom.roomType).amenities),
+          roomInfoChooser(newRoom.roomType).thumbnail,
+          JSON.stringify(roomInfoChooser(newRoom.roomType).images),
+          newRoom.status,
+        ]
+      )) as ResultSetHeader;
 
-      await room
-        .save()
-        .then(() => {
-          console.log("Room saved!");
-        })
-        .catch((error) => {
-          throw new Error("Error saving the room " + error);
-        });
-      console.log(await room);
-      return room;
+      if (roomDb.affectedRows === 0) {
+        throw new Error("Couldn't create the Room.");
+      } else return getSingleRoom(id);
     }
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
-export const deleteRoom = async (roomId: IRoom["id"]) => {
+export const deleteRoom = async (roomId: Room["id"]) => {
   try {
-    let room = await Room.findOneAndDelete({ id: roomId }).exec();
-    if (room) {
-      let booking = await Booking.updateMany({room: roomId},  { room: "R-0000"})
-      return room;
-    } else
-      throw new Error(
-        `Room with ID ${roomId} could not be found in the database.`
-      );
+    const query = "DELETE FROM rooms WHERE id= ?;";
+    const room = (await queryDb(query, [roomId])) as ResultSetHeader;
+    if (room.affectedRows === 0) {
+      throw new Error("Couldn't delete the room.");
+    } else {
+      return roomId;
+    }
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
 export const roomInfoChooser = (roomType: string) => {

@@ -1,129 +1,108 @@
-import { IBooking } from "../types/interfaces";
-import { Booking } from "../models/bookings";
-import { connect, disconnect } from "../database/mongoDBconnection";
-import { Room } from "../models/rooms";
-
-
-
+import { Booking } from "../types/interfaces";
+import { queryDb } from "../database/mysqlConnector";
+import { ResultSetHeader } from "mysql2";
 
 export const getBookings = async () => {
   try {
-    let bookings: IBooking[] = await Booking.find().sort({id: 1 }).exec();
-    if(bookings.length > 0){
-      return bookings
-    } else throw new Error("Couldn`t find bookings on the database.")
-    
+    const query = "SELECT * from bookings";
+
+    return await queryDb(query, null);
   } catch (e) {
     throw e;
   }
 };
 
-export const getSingleBooking = async (bookingId: IBooking["id"]) => {
+export const getSingleBooking = async (bookingId: Booking["id"]) => {
   try {
-    let booking = await Booking.findOne({ id: bookingId }).exec();
-    if (booking) {
-      console.log(booking);
+    const query = "SELECT * from bookings WHERE id= ?;";
+    const booking = (await queryDb(query, [bookingId])) as Booking[];
+
+    if (booking.length === 0) {
+      throw new Error("Booking not found!");
+    } else {
       return booking;
-    } else
-      throw new Error(
-        `Booking with ID ${bookingId} could not be found in the database.`
-      );
+    }
   } catch (error) {
     throw error;
   }
 };
 
 export const updateBooking = async (
-  updatedBooking: IBooking,
-  bookingId: IBooking["id"]
-  
+  updatedBooking: Booking,
+  bookingId: Booking["id"]
 ) => {
-  
   try {
-    let {id}  = updatedBooking
-    id = bookingId;
+    const sql =
+      "UPDATE bookings SET id=?, name=?, orderDate=?, checkIn=?, checkOut=?, room=?, specialRequest=? WHERE id=?";
+    const values = [
+      updatedBooking.id,
+      updatedBooking.name,
+      updatedBooking.orderDate,
+      updatedBooking.checkIn,
+      updatedBooking.checkOut,
+      updatedBooking.room,
+      updatedBooking.specialRequest,
+      bookingId,
+    ];
 
-    const findRoom = await Room.findOne({id : updatedBooking.room}).exec();
-    if(findRoom){
-      let booking = await Booking.findOneAndUpdate({id: bookingId}, { 
-        $set: updatedBooking }, {new: true}).exec();
-      console.log(booking)
-      if (booking) {
-        console.log(booking);
-        return booking;
-      } else
-        throw new Error(
-          `Booking with ID ${bookingId} could not be found in the database.`
-        );
-    } else  throw new Error(
-      `Room with ID ${updatedBooking.room} could not be found in the database.`
-    )
-    
+    const result = (await queryDb(sql, values)) as ResultSetHeader;
 
+    if (result.affectedRows === 0) {
+      throw new Error("Couldn't update the booking.");
+    } else return getSingleBooking(bookingId);
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
-export const createBooking = async (newbooking: IBooking) => {
+export const createBooking = async (booking: Booking) => {
   try {
-    const lastBooking = await Booking.findOne().sort({id: -1 }).exec() as IBooking;
-    const lastId = parseInt(lastBooking.id.slice(2))
-    if (!lastBooking) {
+    const lastBooking = (await queryDb(
+      "SELECT id FROM bookings ORDER BY ID DESC LIMIT 1;",
+      null
+    )) as Booking[];
+
+    if (lastBooking.length === 0) {
       throw Error("Couldn't find bookings on the database");
     } else {
-      
-    const {name, checkIn, checkOut, room, id,  specialRequest} = newbooking
-    const findRoom = await Room.findOne({id : room}).exec();
+      const lastId = parseInt(lastBooking[0].id.slice(2));
+      const newBooking = [
+        "B-" + (lastId + 1).toString().padStart(4, "0"),
+        booking.name,
+        new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+        booking.checkIn,
+        booking.checkOut,
+        booking.room,
+        booking.specialRequest,
+      ];
+      const createdBooking = (await queryDb(
+        "INSERT INTO `bookings` (id, name, orderDate, checkIn, checkOut, room, specialRequest) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        newBooking
+      )) as ResultSetHeader;
 
-    if(findRoom){
-      let booking = await new Booking({
-        id: "B-" + (lastId + 1).toString().padStart(4, "0"),
-        name: name,
-        orderDate: new Date().toLocaleDateString(
-          "en-US",
-          {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }
-        ),
-        checkIn: checkIn,
-        checkOut:checkOut,
-        room: room,
-        specialRequest: specialRequest,
-    })
-    
-    await booking.save()
-    .then(() => {
-      console.log("Booking saved!");
-      console.log(booking)
-      
-    })
-    .catch((error) => {
-      throw new Error("Error saving the booking");
-    });
-    return booking;
-    } else{
-      throw new Error("The room could not be found in the database")
+      if (createdBooking.affectedRows === 0) {
+        throw new Error("Booking not found!");
+      } else return await getSingleBooking(newBooking[0]);
     }
-}
   } catch (e) {
     throw e;
-  } 
+  }
 };
 
-export const deleteBooking = async (bookingId: IBooking["id"]) => {
+export const deleteBooking = async (bookingId: Booking["id"]) => {
   try {
-    let booking = await Booking.findOneAndDelete({ id: bookingId }).exec();
-    if (booking) {
-      console.log(booking);
-      return booking;
-    } else
-      throw new Error(
-        `Booking with ID ${bookingId} could not be found in the database.`
-      );
+    const query = "DELETE FROM bookings WHERE id= ?;";
+    const booking = await queryDb(query, [bookingId]);
+    /* if(booking.affectedRows === 0){
+      throw new Error ("Couldn't delete the booking.")
+    } else {
+      return bookingId;
+    } */
   } catch (error) {
     throw error;
   }
-}; 
+};
