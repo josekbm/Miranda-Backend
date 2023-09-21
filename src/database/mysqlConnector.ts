@@ -7,7 +7,7 @@ export const queryDb = async ( query: string, params: any[] | null) => {
         host: "localhost",
         user: "root",
         password: "",
-        database: "hotel-miranda",
+        database: "miranda_db",
       });
   
         const [rows] = await connection.execute(query, params);
