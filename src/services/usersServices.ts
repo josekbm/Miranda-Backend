@@ -70,6 +70,7 @@ export const createUser = async (newUser: IUser) => {
         name,
         photo,
         password,
+        salt,
         state,
         email,
         phone,
@@ -84,6 +85,7 @@ export const createUser = async (newUser: IUser) => {
         id: id,
         name: name,
         password: password,
+        salt: salt,
         jobDescription: jobDescription,
         position: position,
         email: email,
@@ -133,4 +135,3 @@ export const jobDescriptionChooser = (position: string) => {
     return "Responsible for preparing and delivering food and beverages to guest rooms.";
   } else return "Administrator";
 };
-//crypto

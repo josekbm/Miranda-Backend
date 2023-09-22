@@ -313,4 +313,3 @@ const insertFakerBookings = async (count: number) => {
 };
 
 InsertAll();
-//crypto

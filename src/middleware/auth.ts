@@ -70,4 +70,3 @@ export async function verifyPassword(
   const newHash = hashPassword(password, salt);
   return newHash === hashedPassword;
 }
-//crypto
