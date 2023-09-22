@@ -192,6 +192,7 @@ const insertJsonRooms = async () => {
       thumbnail: element.thumbnail,
       amenities: element.amenities,
       images: element.images,
+      status: element.status
     })
       .save()
       .then(() => {
