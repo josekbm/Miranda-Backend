@@ -19,3 +19,4 @@ const userSchema = new Schema<IUser>({
 const User = model("User", userSchema);
 
 export {User, IUser}
+//crypto

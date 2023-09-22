@@ -133,3 +133,4 @@ export const jobDescriptionChooser = (position: string) => {
     return "Responsible for preparing and delivering food and beverages to guest rooms.";
   } else return "Administrator";
 };
+//crypto
