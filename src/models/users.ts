@@ -11,6 +11,7 @@ const userSchema = new Schema<IUser>({
     jobDescription: {type: String, required: true},
     state: {type: String, enum: ["ACTIVE", "INACTIVE"], required: true},
     password: {type: String, required: true},
+    salt: {type: String, required: true},
     position: {type: String, required: true},
     
 }, {versionKey: false})

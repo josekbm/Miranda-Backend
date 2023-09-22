@@ -34,7 +34,7 @@ export const updateUser = async (updatedUser: IUser, userId: IUser["id"]) => {
     updatedUser.jobDescription = jobDescriptionChooser(updatedUser.position);
 
     if (updatedUser.password) {
-      updatedUser.password = await hashPassword(updatedUser.password);
+      updatedUser.password = await hashPassword(updatedUser.password, updatedUser.salt);
     }
 
     let user = await User.findOneAndUpdate(
@@ -70,6 +70,7 @@ export const createUser = async (newUser: IUser) => {
         name,
         photo,
         password,
+        salt,
         state,
         email,
         phone,
@@ -77,13 +78,14 @@ export const createUser = async (newUser: IUser) => {
         position,
       } = newUser;
       id = "U-" + (lastId + 1).toString().padStart(4, "0");
-      password = await hashPassword(newUser.password);
+      password = await hashPassword(newUser.password, newUser.salt);
       let jobDescription = jobDescriptionChooser(newUser.position);
 
       const user = new User({
         id: id,
         name: name,
         password: password,
+        salt: salt,
         jobDescription: jobDescription,
         position: position,
         email: email,

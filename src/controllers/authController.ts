@@ -12,6 +12,7 @@ export const authController = async (
   passport.authenticate("login", async (err: any, user: IUser, info: any) => {
     try {
       if (err || !user) {
+        console.log(err)
         const error = err ? new Error(err) : new Error("Invalid credentials");
         return next(error);
       }
@@ -24,7 +25,9 @@ export const authController = async (
         const token = jwt.sign({ user: body }, process.env.SECRET_KEY!);
         return res.json( token );
       });
+
     } catch (error) {
+      console.log(error)
       return next(error);
     }
   })(req, res, next);
