@@ -20,7 +20,7 @@ passport.use(
         }).exec();
         if (user) {
           const hashedPassword = hashPassword(password, user.salt); // Genera el hash usando la sal almacenada en el usuario
-          if (await hashedPassword === user.password) {
+          if (hashedPassword === user.password) {
             console.log("Valid credentials!");
             return done(null, { id: user.id, email: email });
           } else {
@@ -51,21 +51,15 @@ passport.use(
 );
 
 // Función para generar un hash usando crypto y una sal
-export const hashPassword = async (password: string, salt: string): Promise<string> => {
-  return new Promise<string>((resolve, reject) => {
-    crypto.pbkdf2(password, salt, 10000, 64, "sha512", (err, derivedKey) => {
-      if (err) {
-        reject(err);
-      }
-      const hashedPassword = derivedKey.toString("hex");
-      resolve(hashedPassword);
-    });
-  });
-};
+export function hashPassword(password: string, salt: string): string {
+  const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512");
+  return hash.toString("hex");
+}
 
-export const generateSalt = (): string => {
-  return crypto.randomBytes(16).toString("hex");
-};
+export async function generateSalt(): Promise<string> {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return salt;
+}
 
 
 export async function verifyPassword(
@@ -73,6 +67,6 @@ export async function verifyPassword(
   hashedPassword: string,
   salt: string
 ): Promise<boolean> {
-  const newHash = await hashPassword(password, salt);
+  const newHash = hashPassword(password, salt);
   return newHash === hashedPassword;
 }
